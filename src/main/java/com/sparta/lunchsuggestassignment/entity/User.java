@@ -28,11 +28,20 @@ public class User extends BaseTimeEntity {
     private String name;
 
     // 1:N (User -> LunchRound)
-    @OneToMany(mappedBy = "creator", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userId", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LunchRound> rounds = new ArrayList<>();
 
     // 1:N (User -> Vote)
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Vote> votes = new ArrayList<>();
 
+    public User(String email, String password, String name) {
+        this.email = email;
+        this.password = password;
+        this.name = name;
+    }
+
+    public static User createUser(String email, String password, String name) {
+        return new User(email,password,name);
+    }
 }
