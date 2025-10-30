@@ -1,5 +1,7 @@
 package com.sparta.lunchsuggestassignment.controller;
 
+import com.sparta.lunchsuggestassignment.dto.LoginRequestDto;
+import com.sparta.lunchsuggestassignment.dto.LoginResponseDto;
 import com.sparta.lunchsuggestassignment.dto.SignupRequestDto;
 import com.sparta.lunchsuggestassignment.dto.SignupResponseDto;
 import com.sparta.lunchsuggestassignment.service.AuthService;
@@ -17,18 +19,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<SignupResponseDto> signup(@Valid @RequestBody SignupRequestDto signupRequestDto, UriComponentsBuilder uriBuilder) {
-        SignupResponseDto created = authService.signup(signupRequestDto);
+    public ResponseEntity<SignupResponseDto> signup(@RequestBody SignupRequestDto request) {
+        return ResponseEntity.ok(authService.signup(request));
+    }
 
-        //Location 헤더를 위한 URI 생성
-        URI location = uriBuilder
-                .path("/api/users/{id}")
-                .buildAndExpand(created.getId())
-                .toUri();
-
-        //201 Created 상태 + Location 헤더 + 응답 body 반환
-        return ResponseEntity
-                .created(location)
-                .body(created);
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
+        return ResponseEntity.ok(authService.login(request));
     }
 }
