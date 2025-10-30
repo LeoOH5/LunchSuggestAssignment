@@ -1,5 +1,8 @@
 package com.sparta.lunchsuggestassignment.service;
 
+import com.sparta.lunchsuggestassignment.config.JwtUtil;
+import com.sparta.lunchsuggestassignment.dto.LoginRequestDto;
+import com.sparta.lunchsuggestassignment.dto.LoginResponseDto;
 import com.sparta.lunchsuggestassignment.dto.SignupRequestDto;
 import com.sparta.lunchsuggestassignment.dto.SignupResponseDto;
 import com.sparta.lunchsuggestassignment.entity.User;
@@ -16,6 +19,7 @@ import java.util.Optional;
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     // 회원가입
     @Transactional
@@ -34,5 +38,24 @@ public class AuthService {
         User saved = userRepository.save(user);
 
         return new SignupResponseDto(saved.getId(),saved.getEmail(),saved.getName(),saved.getCreatedAt());
+    }
+
+    // 로그인
+    @Transactional(readOnly = true)
+    public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+        User user = userRepository.findByEmail(loginRequestDto.getEmail())
+                .orElseThrow(() -> new IllegalStateException("존재하지 않는 이메일입니다."));
+
+        if (!passwordEncoder.matches(loginRequestDto.getPassword(),user.getPassword())) {
+            throw new IllegalStateException("비밀번호가 일치하지 않습니다.");
+        }
+
+        String accessToken = jwtUtil.createToken(user.getEmail());
+        String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
+
+        // refreshToken은 서버에 저장
+        // refreshTokenStore.save(user.getEmail(), refreshToken);
+
+        return new LoginResponseDto(accessToken, refreshToken);
     }
 }
