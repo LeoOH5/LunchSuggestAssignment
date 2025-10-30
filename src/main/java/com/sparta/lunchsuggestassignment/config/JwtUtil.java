@@ -111,5 +111,10 @@ public class JwtUtil {
     public Claims getUserInfoFromToken(String token) {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
+
+    // 유효성 실패 시 예외 발생
+    public void validateOrThrow(String token) {
+        Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+    }
 }
 

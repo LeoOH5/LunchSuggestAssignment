@@ -6,7 +6,9 @@ import com.sparta.lunchsuggestassignment.dto.LoginResponseDto;
 import com.sparta.lunchsuggestassignment.dto.SignupRequestDto;
 import com.sparta.lunchsuggestassignment.dto.SignupResponseDto;
 import com.sparta.lunchsuggestassignment.entity.User;
+import com.sparta.lunchsuggestassignment.repository.RefreshTokenStore;
 import com.sparta.lunchsuggestassignment.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final RefreshTokenStore refreshTokenStore;
 
     // 회원가입
     @Transactional
@@ -54,8 +57,29 @@ public class AuthService {
         String refreshToken = jwtUtil.createRefreshToken(user.getEmail());
 
         // refreshToken은 서버에 저장
-        // refreshTokenStore.save(user.getEmail(), refreshToken);
+        refreshTokenStore.save(user.getEmail(), refreshToken);
 
         return new LoginResponseDto(accessToken, refreshToken);
+    }
+
+    // 토큰 재발급
+    @Transactional
+    public LoginResponseDto reissue(String refreshToken) {
+        jwtUtil.validateOrThrow(refreshToken);
+
+        Claims claims = jwtUtil.getUserInfoFromToken(refreshToken);
+        String email = claims.getSubject();
+
+        // 저장소에 있는 최신 refresh 와 일치하는지 체크
+        String saved = refreshTokenStore.get(email);
+        if (saved == null || !saved.equals(refreshToken)) {
+            throw new IllegalArgumentException("유효하지 않은 Refresh 토큰입니다.");
+        }
+
+        String newAccess = jwtUtil.createToken(email);
+        String newRefresh = jwtUtil.createRefreshToken(email);
+        refreshTokenStore.save(email, newRefresh);
+
+        return new LoginResponseDto(newAccess, newRefresh);
     }
 }

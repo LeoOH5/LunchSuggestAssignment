@@ -27,4 +27,9 @@ public class AuthController {
     public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto request) {
         return ResponseEntity.ok(authService.login(request));
     }
+
+    @PostMapping("/reissue")
+    public ResponseEntity<LoginResponseDto> reissue(@RequestHeader("X-Refresh-Token") String refreshToken) {
+        return ResponseEntity.ok(authService.reissue(refreshToken));
+    }
 }
