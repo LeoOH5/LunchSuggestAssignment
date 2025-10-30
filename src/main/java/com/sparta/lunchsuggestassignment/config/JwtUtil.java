@@ -116,5 +116,10 @@ public class JwtUtil {
     public void validateOrThrow(String token) {
         Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
     }
+
+    // 검증 + 파싱
+    public Jws<Claims> parse(String token) throws JwtException, IllegalArgumentException {
+        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+    }
 }
 
